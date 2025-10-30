@@ -10,6 +10,9 @@ export async function GET(request: Request) {
       headers: { 'content-type': 'application/json' },
     });
   }
+  // Narrow types for downstream usage
+  const latStr: string = lat;
+  const lonStr: string = lon;
 
   async function fetchOpenMeteo(): Promise<Response | null> {
     const upstream = new URL('https://geocoding-api.open-meteo.com/v1/reverse');
@@ -27,11 +30,11 @@ export async function GET(request: Request) {
     }
   }
 
-  async function fetchNominatim(): Promise<any | null> {
+  async function fetchNominatim(latParam: string, lonParam: string): Promise<any | null> {
     const upstream = new URL('https://nominatim.openstreetmap.org/reverse');
     upstream.searchParams.set('format', 'jsonv2');
-    upstream.searchParams.set('lat', lat);
-    upstream.searchParams.set('lon', lon);
+    upstream.searchParams.set('lat', latParam);
+    upstream.searchParams.set('lon', lonParam);
     upstream.searchParams.set('zoom', '10');
     try {
       const res = await fetch(upstream.toString(), {
@@ -50,8 +53,8 @@ export async function GET(request: Request) {
         results: [
           {
             name,
-            latitude: Number(lat),
-            longitude: Number(lon),
+            latitude: Number(latParam),
+            longitude: Number(lonParam),
             admin1,
             country,
             timezone: undefined,
@@ -78,7 +81,7 @@ export async function GET(request: Request) {
   }
 
   // Fallback: Nominatim
-  const nom = await fetchNominatim();
+  const nom = await fetchNominatim(latStr, lonStr);
   if (nom) {
     return new Response(JSON.stringify(nom), {
       status: 200,
