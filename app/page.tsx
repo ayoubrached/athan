@@ -24,6 +24,7 @@ export default function HomePage() {
   const [autoMethod, setAutoMethod] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [dateInitialized, setDateInitialized] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -67,6 +68,21 @@ export default function HomePage() {
       setHydrated(true);
     }
   }, []);
+
+  // On first load only: choose initial day using Fajr boundary.
+  // If it's before today's Fajr, start on yesterday; otherwise, today.
+  useEffect(() => {
+    if (!hydrated || dateInitialized || !location) return;
+    try {
+      const nowLocal = new Date();
+      const todayTimes = computePrayerTimes(nowLocal, location.latitude, location.longitude, method, madhab);
+      const beforeFajr = nowLocal.getTime() < todayTimes.fajr.getTime();
+      const base = new Date(nowLocal.getFullYear(), nowLocal.getMonth(), nowLocal.getDate());
+      setSelectedDate(beforeFajr ? new Date(base.getFullYear(), base.getMonth(), base.getDate() - 1) : base);
+    } finally {
+      setDateInitialized(true);
+    }
+  }, [hydrated, dateInitialized, location, method, madhab]);
 
   return (
     <main>
