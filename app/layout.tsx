@@ -6,7 +6,9 @@ export const metadata = {
   description: 'Prayer Times',
   icons: {
     icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    apple: [
+      { url: '/apple-touch-icon.png?v=2', sizes: '180x180' },
+    ],
   },
 };
 

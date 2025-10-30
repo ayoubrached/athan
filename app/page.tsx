@@ -23,6 +23,7 @@ export default function HomePage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [autoMethod, setAutoMethod] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -35,8 +36,9 @@ export default function HomePage() {
     return computePrayerTimes(date, location.latitude, location.longitude, method, madhab);
   }, [location, selectedDate, method, madhab]);
 
-  // Persist settings in localStorage
+  // Persist settings in localStorage (skip until hydration complete)
   useEffect(() => {
+    if (!hydrated) return;
     try {
       const payload = {
         location,
@@ -47,26 +49,40 @@ export default function HomePage() {
       };
       localStorage.setItem('athan.settings', JSON.stringify(payload));
     } catch {}
-  }, [location, method, madhab, selectedDate, autoMethod]);
+  }, [hydrated, location, method, madhab, selectedDate, autoMethod]);
 
   // Restore from localStorage on mount
   useEffect(() => {
     try {
       const raw = localStorage.getItem('athan.settings');
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (parsed.location) setLocation(parsed.location);
-      if (parsed.method) setMethod(parsed.method);
-      if (parsed.madhab) setMadhab(parsed.madhab);
-      if (parsed.selectedDate) setSelectedDate(new Date(parsed.selectedDate));
-      if (typeof parsed.autoMethod === 'boolean') setAutoMethod(parsed.autoMethod);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.location) setLocation(parsed.location);
+        if (parsed.method) setMethod(parsed.method);
+        if (parsed.madhab) setMadhab(parsed.madhab);
+        if (parsed.selectedDate) setSelectedDate(new Date(parsed.selectedDate));
+        if (typeof parsed.autoMethod === 'boolean') setAutoMethod(parsed.autoMethod);
+      }
     } catch {}
+    finally {
+      setHydrated(true);
+    }
   }, []);
 
   return (
     <main>
       <div className="card" style={{ position: 'relative', display: 'grid', gap: 8, textAlign: 'center' }}>
-        <button className="secondary" onClick={() => setSettingsOpen(true)} style={{ position: 'absolute', right: 12, top: 12 }}>Settings</button>
+        <button
+          aria-label="Settings"
+          className="icon-button"
+          onClick={() => setSettingsOpen(true)}
+          style={{ position: 'absolute', right: 8, top: 8 }}
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 1 1 3.59 17.6l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 2.5 14H2a2 2 0 1 1 0-4h.09c.66 0 1.26-.38 1.54-.97a1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 6.07 3.59l.06.06c.39.39.98.51 1.51.33.59-.28.97-.88.97-1.54V2a2 2 0 1 1 4 0v.09c0 .66.38 1.26.97 1.54.53.18 1.12.06 1.51-.33l.06-.06A2 2 0 1 1 20.41 6.07l-.06.06c-.39.39-.51.98-.33 1.51.28.59.88.97 1.54.97H22a2 2 0 1 1 0 4h-.09c-.66 0-1.26.38-1.54.97z" />
+          </svg>
+        </button>
         <div style={{ display: 'grid', placeItems: 'center' }}>
           <div style={{ fontSize: 36, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
             <Clock />

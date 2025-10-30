@@ -61,6 +61,18 @@ button {
 button.secondary { background: #1f2937; color: var(--text); }
 button:disabled { opacity: 0.6; cursor: default; }
 
+/* Icon button for compact actions (e.g., settings on mobile) */
+.icon-button {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.08);
+  width: 36px; height: 36px; padding: 0;
+  display: grid; place-items: center;
+  border-radius: 9999px;
+}
+.icon-button:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+.icon-button svg { display: block; }
+
 .times {
   width: 100%;
   border-collapse: collapse;
