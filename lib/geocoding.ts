@@ -53,11 +53,22 @@ export async function reverseGeocode(
   latitude: number,
   longitude: number
 ): Promise<GeoLocation | null> {
-  const url = `/api/geocode/reverse?latitude=${latitude}&longitude=${longitude}&language=en&format=json`;
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) return null;
-  const data = (await res.json()) as OpenMeteoReverse;
-  const r = data.results?.[0];
+  async function query(lat: number, lon: number) {
+    const url = `/api/geocode/reverse?latitude=${lat}&longitude=${lon}&language=en&format=json`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = (await res.json()) as OpenMeteoReverse;
+    return data.results?.[0] ?? null;
+  }
+
+  let r = await query(latitude, longitude);
+  if (!r || (!r.name && !r.admin1 && !r.country)) {
+    // Retry with rounded coordinates to improve hit-rate for reverse geocoding
+    const latR = Number(latitude.toFixed(3));
+    const lonR = Number(longitude.toFixed(3));
+    r = await query(latR, lonR);
+  }
+
   if (!r) {
     return {
       latitude,
@@ -65,6 +76,7 @@ export async function reverseGeocode(
       displayName: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
     };
   }
+
   return {
     latitude,
     longitude,

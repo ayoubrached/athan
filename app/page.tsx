@@ -5,8 +5,7 @@ import { Clock } from '@/components/Clock';
 import { LocationPicker } from '@/components/LocationPicker';
 import { PrayerTable } from '@/components/PrayerTable';
 import { computePrayerTimes, type PrayerSet, type MethodKey, type MadhabKey, suggestMethodForCountry } from '@/lib/prayer';
-import { MethodSelect } from '@/components/MethodSelect';
-import { MadhabSelect } from '@/components/MadhabSelect';
+import { Settings } from '@/components/Settings';
 
 type Location = {
   latitude: number;
@@ -22,7 +21,8 @@ export default function HomePage() {
   const [method, setMethod] = useState<MethodKey>('MWL');
   const [madhab, setMadhab] = useState<MadhabKey>('Shafi');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [methodUserSet, setMethodUserSet] = useState(false);
+  const [autoMethod, setAutoMethod] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -43,10 +43,11 @@ export default function HomePage() {
         method,
         madhab,
         selectedDate: selectedDate.toISOString(),
+        autoMethod,
       };
       localStorage.setItem('athan.settings', JSON.stringify(payload));
     } catch {}
-  }, [location, method, madhab, selectedDate]);
+  }, [location, method, madhab, selectedDate, autoMethod]);
 
   // Restore from localStorage on mount
   useEffect(() => {
@@ -58,24 +59,23 @@ export default function HomePage() {
       if (parsed.method) setMethod(parsed.method);
       if (parsed.madhab) setMadhab(parsed.madhab);
       if (parsed.selectedDate) setSelectedDate(new Date(parsed.selectedDate));
+      if (typeof parsed.autoMethod === 'boolean') setAutoMethod(parsed.autoMethod);
     } catch {}
   }, []);
 
   return (
     <main>
-      <div className="card" style={{ display: 'grid', gap: 8 }}>
-        <div className="row">
-          <h1 style={{ margin: 0 }}>Athan</h1>
-          <div style={{ display: 'grid', textAlign: 'right' }}>
-            <div style={{ fontSize: 18, fontVariantNumeric: 'tabular-nums' }}>
-              <Clock />
-            </div>
-            <div className="label" style={{ color: 'var(--muted)', fontSize: 13 }}>
-              {new Intl.DateTimeFormat(undefined, { dateStyle: 'full' }).format(selectedDate)}
-            </div>
+      <div className="card" style={{ position: 'relative', display: 'grid', gap: 8, textAlign: 'center' }}>
+        <button className="secondary" onClick={() => setSettingsOpen(true)} style={{ position: 'absolute', right: 12, top: 12 }}>Settings</button>
+        <div style={{ display: 'grid', placeItems: 'center' }}>
+          <div style={{ fontSize: 36, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+            <Clock />
+          </div>
+          <div className="label" style={{ color: 'var(--muted)', fontSize: 16 }}>
+            {new Intl.DateTimeFormat(undefined, { dateStyle: 'full' }).format(selectedDate)}
           </div>
         </div>
-        <div className="row">
+        <div className="row" style={{ justifyContent: 'center' }}>
           <div className="row" style={{ gap: 8 }}>
             <button className="secondary" onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() - 1))}>‹ Prev day</button>
             <button className="secondary" onClick={() => setSelectedDate(new Date())}>Today</button>
@@ -93,15 +93,20 @@ export default function HomePage() {
             displayName: loc.displayName,
             country: loc.country,
           });
-          if (!methodUserSet) {
-            const suggested = suggestMethodForCountry(loc.country);
-            setMethod(suggested);
-          }
+          if (autoMethod) setMethod(suggestMethodForCountry(loc.country));
         }}
       />
 
-      <MethodSelect value={method} onChange={(m) => { setMethod(m); setMethodUserSet(true); }} />
-      <MadhabSelect value={madhab} onChange={setMadhab} />
+      <Settings
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        method={method}
+        onMethodChange={setMethod}
+        madhab={madhab}
+        onMadhabChange={setMadhab}
+        autoMethod={autoMethod}
+        onAutoMethodChange={setAutoMethod}
+      />
       <PrayerTable times={times} now={now} locationName={location?.displayName} timezone={location?.timezone} />
     </main>
   );

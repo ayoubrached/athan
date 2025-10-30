@@ -2,8 +2,9 @@ import './globals.css';
 import type { ReactNode } from 'react';
 
 export const metadata = {
-  title: 'Athan',
-  description: 'Prayer times',
+  title: 'Prayer Times',
+  description: 'Prayer Times',
+  icons: { icon: '/favicon.ico' },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

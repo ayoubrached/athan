@@ -108,7 +108,7 @@ export type LabeledEvent = { label: string; time: Date };
 export function toEventList(times: PrayerSet): LabeledEvent[] {
   return [
     { label: 'Midnight', time: times.midnight },
-    { label: 'Last third start', time: times.lastThirdStart },
+    { label: 'Last Third of the Night', time: times.lastThirdStart },
     { label: 'Fajr', time: times.fajr },
     { label: 'Sunrise', time: times.sunrise },
     { label: 'Dhuhr', time: times.dhuhr },
