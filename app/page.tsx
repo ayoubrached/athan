@@ -44,12 +44,11 @@ export default function HomePage() {
         location,
         method,
         madhab,
-        selectedDate: selectedDate.toISOString(),
         autoMethod,
       };
       localStorage.setItem('athan.settings', JSON.stringify(payload));
     } catch {}
-  }, [hydrated, location, method, madhab, selectedDate, autoMethod]);
+  }, [hydrated, location, method, madhab, autoMethod]);
 
   // Restore from localStorage on mount
   useEffect(() => {
@@ -60,7 +59,7 @@ export default function HomePage() {
         if (parsed.location) setLocation(parsed.location);
         if (parsed.method) setMethod(parsed.method);
         if (parsed.madhab) setMadhab(parsed.madhab);
-        if (parsed.selectedDate) setSelectedDate(new Date(parsed.selectedDate));
+        // Always start on today's date when loading the app
         if (typeof parsed.autoMethod === 'boolean') setAutoMethod(parsed.autoMethod);
       }
     } catch {}
